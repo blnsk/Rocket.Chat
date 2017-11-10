@@ -211,48 +211,36 @@ jobs:
       # - store_artifacts:
       #     path: ~/repo/.screenshots
 
-#  deploy:
-#    <<: *defaults
-#    docker:
-#      - image: circleci/node:4.8
-#
-#    steps:
-#      - attach_workspace:
-#          at: /tmp
-#
-#      - checkout
-#
-#      - run:
-#          name: Install AWS cli
-#          command: |
-#            if [[ $CIRCLE_PULL_REQUESTS ]]; then exit 0; fi;
-#
-#            sudo apt-get -y -qq update
-#            sudo apt-get -y -qq install python3.4-dev
-#            curl -O https://bootstrap.pypa.io/get-pip.py
-#            python3.4 get-pip.py --user
-#            export PATH=~/.local/bin:$PATH
-#            pip install awscli --upgrade --user
-#
-#      - run:
-#          name: Publish assets
-#          command: |
-#            if [[ $CIRCLE_PULL_REQUESTS ]]; then exit 0; fi;
-#
-#            export PATH=~/.local/bin:$PATH
-#            export CIRCLE_TAG=${CIRCLE_TAG:=}
-#
-#            source .circleci/setartname.sh
-#            source .circleci/setdeploydir.sh
-#            bash .circleci/setupsig.sh
-#            bash .circleci/namefiles.sh
-#            # echo ".circleci/sandstorm.sh"
-#
-#            aws s3 cp $ROCKET_DEPLOY_DIR/ s3://download.rocket.chat/build/ --recursive
-#
-#            bash .circleci/update-releases.sh
-#            bash .circleci/docker.sh
-#            bash .circleci/snap.sh
+  deploy:
+    <<: *defaults
+    docker:
+      - image: circleci/node:4.8
+
+    steps:
+      - attach_workspace:
+          at: /tmp
+
+      - checkout
+
+      - run:
+          name: Install Docker client
+          command: |
+            set -x
+            VER="17.03.0-ce"
+            curl -L -o /tmp/docker-$VER.tgz https://get.docker.com/builds/Linux/x86_64/docker-$VER.tgz
+            tar -xz -C /tmp -f /tmp/docker-$VER.tgz
+            mv /tmp/docker/* /usr/bin
+      - run:
+          name: Build service
+          command: make
+
+      - run:
+          name: Build and push Docker image
+          command: |
+            TAG="0.1.${CIRCLE_BUILD_NUM}"
+            docker build -f ./.docker/Dockerfile -t blnsk/rocket.chat.ori:$TAG .
+            docker login -u $DOCKER_LOGIN -p $DOCKER_PASSWORD
+            docker push blnsk/rocket.chat.ori:$TAG
 
 workflows:
   version: 2
@@ -265,15 +253,15 @@ workflows:
       - test-without-oplog:
           requires:
             - build
-#      - deploy:
-#          requires:
-#            - test-with-oplog
-#            - test-without-oplog
-#          filters:
-#            branches:
-#              only:
-#                - develop
-#                - circle-ci
-#            tags:
-#              only:
-#                - "/^\\d+\\.\\d+\\.\\d+(-rc\\.\\d+)?$/"
+      - deploy:
+          requires:
+            - test-with-oplog
+            - test-without-oplog
+          filters:
+            branches:
+              only:
+                - develop
+                - circle-ci
+            tags:
+              only:
+                - "/^\\d+\\.\\d+\\.\\d+(-rc\\.\\d+)?$/"
