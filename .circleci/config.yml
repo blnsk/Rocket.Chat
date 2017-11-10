@@ -254,9 +254,9 @@ workflows:
 #          requires:
 #            - build
       - deploy:
-          requires:
-            - test-with-oplog
-            - test-without-oplog
+#          requires:
+#            - test-with-oplog
+#            - test-without-oplog
           filters:
             branches:
               only:
