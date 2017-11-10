@@ -4,13 +4,16 @@ ENV RC_VERSION 0.60.0-develop
 
 MAINTAINER blnsk@text.com
 
-COPY /tmp/build/Rocket.Chat.tar.gz rocket.chat.tgz
-
 RUN set -x \
+  && ls /tmp \
+  && ls /tmp/build/
 # && curl -SLf "https://download.rocket.chat/build/rocket.chat-${RC_VERSION}.tgz" -o rocket.chat.tgz \
 # && curl -SLf "https://download.rocket.chat/build/rocket.chat-${RC_VERSION}.tgz.asc" -o rocket.chat.tgz.asc \
 # && gpg --verify rocket.chat.tgz.asc \
- && mkdir -p /app \
+
+COPY /tmp/build/Rocket.Chat.tar.gz rocket.chat.tgz
+
+RUN mkdir -p /app \
  && tar -zxf rocket.chat.tgz -C /app \
 # && rm rocket.chat.tgz rocket.chat.tgz.asc \
  && cd /app/bundle/programs/server \
