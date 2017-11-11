@@ -11,11 +11,12 @@ RUN set -x \
 # && curl -SLf "https://download.rocket.chat/build/rocket.chat-${RC_VERSION}.tgz.asc" -o rocket.chat.tgz.asc \
 # && gpg --verify rocket.chat.tgz.asc \
 
-COPY /tmp/build/Rocket.Chat.tar.gz rocket.chat.tgz
+COPY rocket.chat.tgz rocket.chat.tgz
 
 RUN mkdir -p /app \
  && tar -zxf rocket.chat.tgz -C /app \
 # && rm rocket.chat.tgz rocket.chat.tgz.asc \
+ && rm rocket.chat.tgz \
  && cd /app/bundle/programs/server \
  && npm install \
  && npm cache clear --force \

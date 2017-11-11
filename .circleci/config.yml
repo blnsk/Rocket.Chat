@@ -240,6 +240,7 @@ jobs:
           name: Build and push Docker image
           command: |
             TAG="0.1.${CIRCLE_BUILD_NUM}"
+            cp /tmp/build/Rocket.Chat.tar.gz rocket.chat.tgz
             docker build -f ./.docker/Dockerfile -t blnsk/rocket.chat.ori:$TAG .
             docker login -u $DOCKER_LOGIN -p $DOCKER_PASSWORD
             docker push blnsk/rocket.chat.ori:$TAG
